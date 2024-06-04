@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.Button
+{
+    border: 1px solid;
+    @apply px-5 py-2 rounded-full shadow-md border-solid border-slate-400 my-4;
+}
+
+.Button.danger
+{
+    @apply bg-red-900 text-white;
+}

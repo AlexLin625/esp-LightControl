@@ -4,6 +4,7 @@ const char_uuid = 0x1145;
 export default class LightControl {
     constructor() {
         this.device = null;
+        this.disconnectCb = null;
         this.onDisconnected = this.onDisconnected.bind(this);
     }
 
@@ -49,5 +50,11 @@ export default class LightControl {
 
     onDisconnected() {
         console.log('Device is disconnected.');
+        if (this.disconnectCb)
+            this.disconnectCb();
+    }
+
+    setDisconnectedHook(f) {
+        this.disconnectCb = f;
     }
 }
