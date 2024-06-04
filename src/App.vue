@@ -6,14 +6,14 @@ import iro from "@jaames/iro";
 const led = new LightControl();
 const isConnected = ref(false);
 
+let busy = false;
+
 const statusText = computed(() => {
     if (isConnected.value)
         return "设备已连接";
     else
         return "设备未连接";
 });
-
-let timer = null;
 
 function hexToRgb(hex) {
     // Remove the '#' from the start of the string if it's there
@@ -38,7 +38,16 @@ function debounce(func, wait) {
 
 function __setColor(colorString) {
     let payload = new Uint8Array(hexToRgb(colorString));
-    led.writeColor(payload);
+    if (busy) return;
+
+    busy = true;
+    led.writeColor(payload)
+        .then(() => {
+            busy = false;
+        }).catch(() => {
+        busy = false;
+        disableLiveUpdate();
+    });
 }
 
 let setColor = debounce(__setColor, 200);
@@ -69,6 +78,12 @@ onMounted(() => {
                 {
                     component: iro.ui.Slider,
                     options: {
+                        sliderType: "value"
+                    }
+                },
+                {
+                    component: iro.ui.Slider,
+                    options: {
                         sliderType: "kelvin"
                     }
                 },
@@ -81,6 +96,7 @@ onMounted(() => {
     });
 
     led.setDisconnectedHook(() => {
+        disableLiveUpdate();
         isConnected.value = false;
     });
 });
@@ -102,11 +118,19 @@ async function disconnect() {
     isConnected.value = false;
 }
 
-function updateColorFromTemp() {
-    let rgbVal = colorTemperature2rgb(currentColorTemp.value);
-    currentColorStr.value = "#" + rgbVal.red.toString(16).padStart(2, "0")
-        + rgbVal.green.toString(16).padStart(2, "0")
-        + rgbVal.blue.toString(16).padStart(2, "0");
+let timer = null;
+const livePreview = ref(false);
+
+function enableLiveUpdate() {
+    livePreview.value = true;
+    timer = setInterval(() => {
+        __setColor(currentColorStr.value);
+    }, 150);
+}
+
+function disableLiveUpdate() {
+    clearInterval(timer);
+    livePreview.value = false;
 }
 
 </script>
@@ -136,9 +160,17 @@ function updateColorFromTemp() {
 
             <div class="my-8" id="colorPicker"></div>
 
-            <button class="Button" @click="submit()" v-if="isConnected">
-                提交
-            </button>
+            <div class="flex flex-row items-center justify-center gap-4" v-if="isConnected">
+                <button class="Button" @click="submit()" v-if="!livePreview">
+                    提交
+                </button>
+                <button class="Button" @click="enableLiveUpdate()" v-if="!livePreview">
+                    实时预览
+                </button>
+                <button class="Button" @click="disableLiveUpdate()" v-else>
+                    停止
+                </button>
+            </div>
         </div>
     </div>
 </template>
