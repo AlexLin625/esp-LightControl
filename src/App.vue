@@ -153,6 +153,12 @@ function disableLiveUpdate() {
                 断开连接
             </button>
 
+            <div class="my-6 flex flex-row gap-4">
+                <div class="color-preset" @click="setColor('#ff810d')" style="background: #fa9741"/>
+                <div class="color-preset" @click="setColor('#ffa621')" style="background: #ffc477"/>
+                <div class="color-preset" @click="setColor('#ffd363')" style="background: #ffffff"/>
+            </div>
+
             <input
                 class="outline-none shadow-md w-full px-6 py-2 my-3 max-w-[600px] border-gray-500 border-1 rounded-full"
                 type="text" placeholder="自定义颜色"
